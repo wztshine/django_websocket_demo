@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    .message{
+        width: 100%;
+        height: 300px;
+        border: 1px solid #dddddd;
+    }
+</style>
+<body>
+    <div class="message" id="message"></div>
+
+    <div>
+        <input type="text" id="txt">
+        <input type="button" value="send" onclick="sendMessage()">
+        <input type="button" value="close" onclick="ws_close()">
+    </div>
+
+
+
+    <script>
+        // 创建 WebSocket 对象, 尝试握手连接
+        socket = new WebSocket("ws://127.0.0.1:8000")
+
+        // onopen 函数会在 websocket 和服务端建立连接成功后，自动调用执行
+        socket.onopen = function (event){
+            let tag = document.createElement("div")
+            tag.innerText = '[连接成功]'
+            document.getElementById('message').append(tag)
+        }
+
+        // onmessage 会在 websocket 接收到服务端的消息后，自动执行
+        socket.onmessage = function (event){
+            let tag = document.createElement("div")
+            tag.innerText = event.data
+            document.getElementById('message').append(tag)
+        }
+
+        // onclose 会在服务端主动发起断开时，自动触发
+        socket.onclose = function (event){
+            let tag = document.createElement("div")
+            tag.innerText = '[服务端断开]'
+            document.getElementById('message').append(tag)
+
+        }
+
+        function ws_close(){
+            socket.close()  // 客户端主动关闭 websocket 连接
+        }
+
+        function sendMessage(){
+            let content = document.getElementById('txt').value
+            socket.send(content)
+        }
+
+    </script>
+</body>
+</html>
