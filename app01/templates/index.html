@@ -21,10 +21,9 @@
     </div>
 
 
-
     <script>
         // 创建 WebSocket 对象, 尝试握手连接
-        socket = new WebSocket("ws://127.0.0.1:8000")
+        socket = new WebSocket("ws://127.0.0.1:8000/room/{{ group_id }}")
 
         // onopen 函数会在 websocket 和服务端建立连接成功后，自动调用执行
         socket.onopen = function (event){
