@@ -1,30 +1,29 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import async_to_sync
 from channels.exceptions import StopConsumer
-
-clients = []
+from channels.generic.websocket import WebsocketConsumer
 
 
 class ChatConsumer(WebsocketConsumer):
 
     def websocket_connect(self, message):
         """这个函数是用来建立连接的。当客户端发起连接时，服务端会自动触发这个函数"""
-        print("有人来了...")
-        self.accept()  # 接受连接
-        clients.append(self)  # 存储每个客户端连接
+        self.accept()
+        # 自动将当前连接，添加到某个群组中。
+        async_to_sync(self.channel_layer.group_add)("group_1", self.channel_name)
 
     def websocket_receive(self, message):
         """客户端发来消息时，服务端自动调用这个方法接受消息"""
-        print('接收到消息', message)
+        # 这样写只会单独给当前客户端发送消息
+        self.send("你好")
 
-        for client in clients:  # 遍历客户端，给每个客户端发送消息
-            client.send(message['text'])  # send 方法可以发送消息
+        # 给 group_1 群组的所有人发送消息；会调用 "all_send" 方法来为每个人发送消息
+        async_to_sync(self.channel_layer.group_send)("group_1", {"type": "all_send", "message": message})
 
-        if message['text'] == 'close':
-            self.close()  # 可以关闭连接
-            # 触发异常，不会继续执行 websocket_disconnect() 方法了；否则 close() 后还会继续执行 websocket_disconnect()
-            raise StopConsumer()
+    def all_send(self, event):
+        text = event['message']['text']
+        self.send(text)
 
     def websocket_disconnect(self, message):
         """
@@ -32,5 +31,7 @@ class ChatConsumer(WebsocketConsumer):
         :param message:
         :return:
         """
-        print('客户端断开连接了')
+        # 将当前通道，从群组中删除。
+        async_to_sync(self.channel_layer.group_discard)("group_1", self.channel_name)
+
         raise StopConsumer()
