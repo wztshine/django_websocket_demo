@@ -21,7 +21,7 @@ class ChatConsumer(WebsocketConsumer):
         """客户端发来消息时，服务端自动调用这个方法接受消息"""
         group_id = self.scope["url_route"]["kwargs"].get("group_id")
         # 给群组的所有人发送消息；会调用 "all_send" 方法来为每个人发送消息
-        async_to_sync(self.channel_layer.group_send)(group_id, {"type": "all_send", "message": message})
+        async_to_sync(self.channel_layer.group_send)(group_id, {"type": "all.send", "message": message})
 
     def all_send(self, event):
         text = event['message']['text']
